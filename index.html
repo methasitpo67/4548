@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SaveMate - Prototype</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: #e8eef5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .phone {
+      width: 375px;
+      height: 812px;
+      background: #f8fafc;
+      border-radius: 40px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 12px #1e293b;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .status-bar {
+      height: 44px;
+      background: #f8fafc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+    
+    .screens {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .screen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      padding: 0 20px 20px;
+      overflow-y: auto;
+      opacity: 0;
+      transform: translateX(30px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      background: #f8fafc;
+    }
+    
+    .screen.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0 20px;
+    }
+    
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    
+    .avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    
+    .greeting { font-size: 16px; color: #64748b; margin-bottom: 4px; }
+    .user-name { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 20px; }
+    
+    .total-savings {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .total-savings::after {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+    
+    .total-label { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
+    .total-amount { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
+    
+    .auto-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.2);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+    
+    .dot {
+      width: 8px; height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .section-title a {
+      font-size: 13px;
+      color: #3b82f6;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    
+    .goal-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    
+    .goal-card:active { transform: scale(0.98); }
+    
+    .goal-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    
+    .goal-info { flex: 1; }
+    .goal-name { font-weight: 600; font-size: 15px; color: #0f172a; margin-bottom: 4px; }
+    .goal-progress-text { font-size: 12px; color: #64748b; margin-bottom: 6px; }
+    
+    .progress-bar {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    
+    .today-save {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 8px;
+    }
+    
+    .today-save .label { font-size: 14px; color: #065f46; }
+    .today-save .amount { font-size: 20px; font-weight: 700; color: #059669; }
+    
+    .piggy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .piggy-card {
+      background: white;
+      border-radius: 20px;
+      padding: 18px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    
+    .piggy-card:active { transform: scale(0.97); }
+    
+    .piggy-icon {
+      width: 56px; height: 56px;
+      border-radius: 18px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    
+    .piggy-name { font-weight: 600; font-size: 14px; margin-bottom: 6px; color: #0f172a; }
+    .piggy-amount { font-size: 13px; color: #64748b; margin-bottom: 10px; }
+    
+    .add-piggy {
+      border: 2px dashed #cbd5e1;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 180px;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .add-piggy:hover, .add-piggy:active {
+      border-color: #3b82f6;
+      color: #3b82f6;
+      background: #eff6ff;
+    }
+    
+    .add-piggy span { font-size: 32px; margin-bottom: 8px; }
+    
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .setting-item:last-child { border-bottom: none; }
+    .setting-info h3 { font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+    .setting-info p { font-size: 12px; color: #64748b; }
+    
+    .toggle {
+      width: 50px; height: 28px;
+      background: #cbd5e1;
+      border-radius: 14px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .toggle.on { background: #3b82f6; }
+    
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 22px; height: 22px;
+      background: white;
+      border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: transform 0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .toggle.on::after { transform: translateX(22px); }
+    
+    .rule-chip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f1f5f9;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    
+    .rule-chip .delete {
+      color: #ef4444;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+    
+    .roundup-options {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    
+    .roundup-btn {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .roundup-btn.active {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      color: #2563eb;
+    }
+    
+    .streak-card {
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: white;
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .streak-number { font-size: 48px; font-weight: 700; line-height: 1; }
+    
+    .leaderboard-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .rank {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+    }
+    
+    .rank.gold { background: #fef3c7; color: #d97706; }
+    .rank.silver { background: #e2e8f0; color: #475569; }
+    .rank.bronze { background: #ffedd5; color: #c2410c; }
+    
+    .lb-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a78bfa, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+    }
+    
+    .lb-info { flex: 1; }
+    .lb-name { font-weight: 600; font-size: 14px; }
+    .lb-score { font-size: 12px; color: #64748b; }
+    
+    .challenge-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-left: 4px solid #3b82f6;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .challenge-title { font-weight: 600; margin-bottom: 6px; }
+    .challenge-desc { font-size: 13px; color: #64748b; }
+    
+    .chart-circle {
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: conic-gradient(#3b82f6 0% 38%, #10b981 38% 78%, #f59e0b 78% 100%);
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    .chart-circle::before {
+      content: '';
+      position: absolute;
+      width: 110px; height: 110px;
+      background: white;
+      border-radius: 50%;
+    }
+    
+    .chart-center {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+    
+    .chart-center .amount { font-size: 22px; font-weight: 700; color: #0f172a; }
+    .chart-center .label { font-size: 12px; color: #64748b; }
+    
+    .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .breakdown-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .color-dot { width: 12px; height: 12px; border-radius: 50%; }
+    
+    .tip-card {
+      background: #eff6ff;
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 16px;
+      border: 1px solid #bfdbfe;
+    }
+    
+    .tip-card h4 {
+      font-size: 14px;
+      color: #1e40af;
+      margin-bottom: 6px;
+    }
+    
+    .tip-card p { font-size: 13px; color: #1e3a8a; line-height: 1.5; }
+    
+    .bottom-nav {
+      height: 80px;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: 10px;
+    }
+    
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 500;
+      transition: color 0.2s;
+      padding: 8px 12px;
+    }
+    
+    .nav-item.active { color: #3b82f6; }
+    .nav-item .icon { font-size: 22px; line-height: 1; }
+    
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Prompt', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    
+    .btn-secondary {
+      width: 100%;
+      padding: 14px;
+      background: #f1f5f9;
+      color: #475569;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Prompt', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    
+    .btn-success {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Prompt', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    
+    /* Modal */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.5);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    
+    .modal-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .modal {
+      background: white;
+      width: 100%;
+      border-radius: 24px 24px 0 0;
+      padding: 24px 20px 32px;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      max-height: 85%;
+      overflow-y: auto;
+    }
+    
+    .modal-overlay.show .modal {
+      transform: translateY(0);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .modal-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    
+    .modal-close {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .form-group { margin-bottom: 16px; }
+    
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+      margin-bottom: 6px;
+    }
+    
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      font-family: 'Prompt', sans-serif;
+      font-size: 15px;
+      color: #0f172a;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    
+    .form-group input:focus, .form-group select:focus {
+      border-color: #3b82f6;
+    }
+    
+    .icon-picker { display: flex; gap: 10px; flex-wrap: wrap; }
+    
+    .icon-option {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      border: 2px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .icon-option.selected {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+    
+    .color-picker { display: flex; gap: 10px; }
+    
+    .color-option {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .color-option.selected {
+      border-color: #0f172a;
+      transform: scale(1.1);
+    }
+    
+    /* Deposit Modal Specific */
+    .deposit-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .deposit-icon {
+      width: 72px; height: 72px;
+      border-radius: 22px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+    }
+    
+    .deposit-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    
+    .deposit-progress {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+    
+    .quick-amounts {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    .quick-btn {
+      flex: 1;
+      padding: 10px 4px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      background: white;
+      font-family: 'Prompt', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .quick-btn:active, .quick-btn.active {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      color: #2563eb;
+    }
+    
+    /* Toast */
+    .toast {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #0f172a;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 200;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    
+    .screen::-webkit-scrollbar { display: none; }
+    .modal::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="time">14:39</span>
+      <div class="status-icons">
+        <span>📶</span>
+        <span>🔋</span>
+      </div>
+    </div>
+    
+    <div class="toast" id="toast">บันทึกสำเร็จ!</div>
+    
+    <div class="screens">
+      <!-- HOME -->
+      <div class="screen active" id="home">
+        <div class="header">
+          <div>
+            <div class="greeting">สวัสดี 👋</div>
+            <div class="user-name">น้องมิ้นท์</div>
+          </div>
+          <div class="avatar">ม</div>
+        </div>
+        
+        <div class="total-savings">
+          <div class="total-label">ยอดออมทั้งหมด</div>
+          <div class="total-amount" id="totalAmount">฿12,450</div>
+          <div class="auto-status">
+            <span class="dot"></span>
+            ออมอัตโนมัติเปิดอยู่ • วันนี้ +฿87
+          </div>
+        </div>
+        
+        <div class="section-title">
+          เป้าหมายของฉัน
+          <a href="#" onclick="showScreen('goals'); return false;">ดูทั้งหมด</a>
+        </div>
+        
+        <div id="homeGoals"></div>
+        
+        <div class="today-save">
+          <div>
+            <div class="label">ออมได้วันนี้</div>
+            <div style="font-size:12px; color:#059669; margin-top:2px;">จาก Round-up + AI</div>
+          </div>
+          <div class="amount" id="todaySave">+฿87</div>
+        </div>
+      </div>
+      
+      <!-- GOALS -->
+      <div class="screen" id="goals">
+        <div class="header">
+          <h1>กระปุกของฉัน</h1>
+          <div class="avatar">ม</div>
+        </div>
+        <div class="piggy-grid" id="piggyGrid"></div>
+      </div>
+      
+      <!-- AUTO SAVE -->
+      <div class="screen" id="autosave">
+        <div class="header">
+          <h1>ออมอัตโนมัติ</h1>
+        </div>
+        
+        <div class="card">
+          <div class="setting-item">
+            <div class="setting-info">
+              <h3>ปัดเศษทุกครั้งที่จ่าย</h3>
+              <p>ปัดขึ้นเป็นจำนวนที่เลือก แล้วนำส่วนต่างไปออม</p>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="roundup-options">
+            <div class="roundup-btn" onclick="selectRoundup(this)">5 บาท</div>
+            <div class="roundup-btn active" onclick="selectRoundup(this)">10 บาท</div>
+            <div class="roundup-btn" onclick="selectRoundup(this)">20 บาท</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="setting-item">
+            <div class="setting-info">
+              <h3>AI Smart Save</h3>
+              <p>ให้ AI วิเคราะห์และออมเงินส่วนเกินอัตโนมัติ</p>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+        
+        <div class="section-title" style="margin-top:8px;">กฎที่ตั้งเอง</div>
+        <div id="rulesList"></div>
+        <button class="btn-primary" onclick="openAddRuleModal()">+ เพิ่มกฎใหม่</button>
+      </div>
+      
+      <!-- CHALLENGES -->
+      <div class="screen" id="challenges">
+        <div class="header"><h1>ท้าทายกับเพื่อน</h1></div>
+        
+        <div class="streak-card">
+          <div style="font-size:14px; opacity:0.9; margin-bottom:4px;">🔥 Streak ปัจจุบัน</div>
+          <div class="streak-number">7</div>
+          <div style="font-size:14px; margin-top:4px;">วันติดต่อกัน</div>
+        </div>
+        
+        <div class="section-title">Leaderboard สัปดาห์นี้</div>
+        <div class="card" style="padding:8px 16px;">
+          <div class="leaderboard-item">
+            <div class="rank gold">1</div>
+            <div class="lb-avatar">เอ</div>
+            <div class="lb-info">
+              <div class="lb-name">เพื่อนเอ</div>
+              <div class="lb-score">ออม ฿1,240</div>
+            </div>
+            <div>🥇</div>
+          </div>
+          <div class="leaderboard-item">
+            <div class="rank silver">2</div>
+            <div class="lb-avatar" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);">ม</div>
+            <div class="lb-info">
+              <div class="lb-name">น้องมิ้นท์ (คุณ)</div>
+              <div class="lb-score">ออม ฿980</div>
+            </div>
+            <div>🥈</div>
+          </div>
+          <div class="leaderboard-item">
+            <div class="rank bronze">3</div>
+            <div class="lb-avatar" style="background:linear-gradient(135deg,#10b981,#059669);">บี</div>
+            <div class="lb-info">
+              <div class="lb-name">เพื่อนบี</div>
+              <div class="lb-score">ออม ฿870</div>
+            </div>
+            <div>🥉</div>
+          </div>
+        </div>
+        
+        <div class="section-title" style="margin-top:16px;">Challenge กำลังมาแรง</div>
+        <div class="challenge-card">
+          <div class="challenge-title">🎯 ออมให้ได้ 500 บาทในสัปดาห์นี้</div>
+          <div class="challenge-desc">เหลืออีก 3 วัน • มี 12 คนเข้าร่วม</div>
+        </div>
+        <div class="challenge-card" style="border-left-color:#8b5cf6;">
+          <div class="challenge-title">🏫 แข่งกับห้องเรียน</div>
+          <div class="challenge-desc">ห้อง 4/2 กำลังนำอยู่ • ร่วมสนุกเลย</div>
+        </div>
+      </div>
+      
+      <!-- INSIGHTS -->
+      <div class="screen" id="insights">
+        <div class="header"><h1>สรุปการออม</h1></div>
+        
+        <div class="card" style="text-align:center;">
+          <div style="font-size:14px; color:#64748b; margin-bottom:8px;">เดือนนี้คุณออมได้</div>
+          <div class="chart-circle">
+            <div class="chart-center">
+              <div class="amount">฿2,340</div>
+              <div class="label">พฤศจิกายน</div>
+            </div>
+          </div>
+          
+          <div class="breakdown-item">
+            <div class="breakdown-left">
+              <div class="color-dot" style="background:#3b82f6;"></div>
+              <span>Round-up</span>
+            </div>
+            <strong>฿890</strong>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-left">
+              <div class="color-dot" style="background:#10b981;"></div>
+              <span>AI Smart Save</span>
+            </div>
+            <strong>฿1,120</strong>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-left">
+              <div class="color-dot" style="background:#f59e0b;"></div>
+              <span>กฎที่ตั้งเอง</span>
+            </div>
+            <strong>฿330</strong>
+          </div>
+        </div>
+        
+        <div style="text-align:center; margin:12px 0; font-size:14px; color:#059669; font-weight:500;">
+          📈 มากกว่าเดือนที่แล้ว 28%
+        </div>
+        
+        <div class="tip-card">
+          <h4>💡 AI แนะนำ</h4>
+          <p>เดือนนี้คุณซื้อกาแฟบ่อยมาก (เฉลี่ย 4 ครั้ง/สัปดาห์) ถ้าลดเหลือ 2 ครั้ง จะออมเพิ่มได้อีกประมาณ ฿320/เดือนเลยนะ</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <div class="nav-item active" data-screen="home" onclick="showScreen('home', this)">
+        <div class="icon">🏠</div><span>หน้าหลัก</span>
+      </div>
+      <div class="nav-item" data-screen="goals" onclick="showScreen('goals', this)">
+        <div class="icon">🐷</div><span>เป้าหมาย</span>
+      </div>
+      <div class="nav-item" data-screen="autosave" onclick="showScreen('autosave', this)">
+        <div class="icon">⚡</div><span>ออมอัตโนมัติ</span>
+      </div>
+      <div class="nav-item" data-screen="challenges" onclick="showScreen('challenges', this)">
+        <div class="icon">🏆</div><span>ท้าทาย</span>
+      </div>
+      <div class="nav-item" data-screen="insights" onclick="showScreen('insights', this)">
+        <div class="icon">📊</div><span>สรุป</span>
+      </div>
+    </div>
+    
+    <!-- Modal: Create Piggy -->
+    <div class="modal-overlay" id="piggyModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>สร้างกระปุกใหม่</h2>
+          <button class="modal-close" onclick="closeModal('piggyModal')">×</button>
+        </div>
+        
+        <div class="form-group">
+          <label>ชื่อกระปุก</label>
+          <input type="text" id="piggyName" placeholder="เช่น ซื้อหูฟัง, ทริปญี่ปุ่น">
+        </div>
+        
+        <div class="form-group">
+          <label>เป้าหมาย (บาท)</label>
+          <input type="number" id="piggyTarget" placeholder="เช่น 5000" min="1">
+        </div>
+        
+        <div class="form-group">
+          <label>เลือกไอคอน</label>
+          <div class="icon-picker" id="iconPicker">
+            <div class="icon-option selected" data-icon="🐷" onclick="selectIcon(this)">🐷</div>
+            <div class="icon-option" data-icon="📱" onclick="selectIcon(this)">📱</div>
+            <div class="icon-option" data-icon="✈️" onclick="selectIcon(this)">✈️</div>
+            <div class="icon-option" data-icon="🎧" onclick="selectIcon(this)">🎧</div>
+            <div class="icon-option" data-icon="💻" onclick="selectIcon(this)">💻</div>
+            <div class="icon-option" data-icon="🎮" onclick="selectIcon(this)">🎮</div>
+            <div class="icon-option" data-icon="📚" onclick="selectIcon(this)">📚</div>
+            <div class="icon-option" data-icon="🎁" onclick="selectIcon(this)">🎁</div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>สี</label>
+          <div class="color-picker">
+            <div class="color-option selected" data-color="#ec4899" data-bg="#fce7f3" style="background:#ec4899;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#3b82f6" data-bg="#dbeafe" style="background:#3b82f6;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#10b981" data-bg="#d1fae5" style="background:#10b981;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#f59e0b" data-bg="#fef3c7" style="background:#f59e0b;" onclick="selectColor(this)"></div>
+            <div class="color-option" data-color="#8b5cf6" data-bg="#ede9fe" style="background:#8b5cf6;" onclick="selectColor(this)"></div>
+          </div>
+        </div>
+        
+        <button class="btn-primary" onclick="createPiggy()">สร้างกระปุก</button>
+        <button class="btn-secondary" onclick="closeModal('piggyModal')">ยกเลิก</button>
+      </div>
+    </div>
+    
+    <!-- Modal: Deposit / Save to Piggy -->
+    <div class="modal-overlay" id="depositModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>ออมเงินเข้ากระปุก</h2>
+          <button class="modal-close" onclick="closeModal('depositModal')">×</button>
+        </div>
+        
+        <div class="deposit-header">
+          <div class="deposit-icon" id="depositIcon" style="background:#fce7f3;">📱</div>
+          <div class="deposit-name" id="depositName">ซื้อ iPad</div>
+          <div class="deposit-progress" id="depositProgress">฿10,200 / ฿15,000 (68%)</div>
+          <div class="progress-bar" style="height:8px; margin:0 auto; max-width:200px;">
+            <div class="progress-fill" id="depositBar" style="width:68%; background:#ec4899;"></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>จำนวนเงินที่ต้องการออม (บาท)</label>
+          <input type="number" id="depositAmount" placeholder="เช่น 100" min="1">
+        </div>
+        
+        <div class="quick-amounts">
+          <button class="quick-btn" onclick="setQuickAmount(50)">฿50</button>
+          <button class="quick-btn" onclick="setQuickAmount(100)">฿100</button>
+          <button class="quick-btn" onclick="setQuickAmount(200)">฿200</button>
+          <button class="quick-btn" onclick="setQuickAmount(500)">฿500</button>
+        </div>
+        
+        <button class="btn-success" onclick="depositToPiggy()">💰 ออมเงินเลย</button>
+        <button class="btn-secondary" onclick="closeModal('depositModal')">ยกเลิก</button>
+      </div>
+    </div>
+    
+    <!-- Modal: Add Rule -->
+    <div class="modal-overlay" id="ruleModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>เพิ่มกฎออมใหม่</h2>
+          <button class="modal-close" onclick="closeModal('ruleModal')">×</button>
+        </div>
+        
+        <div class="form-group">
+          <label>เมื่อเกิดเหตุการณ์</label>
+          <select id="ruleTrigger">
+            <option value="ซื้อกาแฟ">ซื้อกาแฟ</option>
+            <option value="ซื้ออาหาร">ซื้ออาหาร</option>
+            <option value="ได้ค่าขนม">ได้ค่าขนม</option>
+            <option value="ได้เงินเดือน">ได้เงินเดือน</option>
+            <option value="ทุกวันจันทร์">ทุกวันจันทร์</option>
+            <option value="ทุกวันศุกร์">ทุกวันศุกร์</option>
+            <option value="สิ้นเดือน">สิ้นเดือน</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>ประเภทการออม</label>
+          <select id="ruleType" onchange="toggleRuleAmount()">
+            <option value="fixed">ออมจำนวนคงที่ (บาท)</option>
+            <option value="percent">ออมเป็นเปอร์เซ็นต์ (%)</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label id="ruleAmountLabel">จำนวนที่ออม (บาท)</label>
+          <input type="number" id="ruleAmount" placeholder="เช่น 20" min="1">
+        </div>
+        
+        <button class="btn-primary" onclick="createRule()">เพิ่มกฎ</button>
+        <button class="btn-secondary" onclick="closeModal('ruleModal')">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========== Data ==========
+    let piggies = [
+      { id: 1, name: 'ซื้อ iPad', current: 10200, target: 15000, icon: '📱', color: '#ec4899', bg: '#fce7f3' },
+      { id: 2, name: 'ทริปญี่ปุ่น', current: 3400, target: 8000, icon: '✈️', color: '#3b82f6', bg: '#dbeafe' },
+      { id: 3, name: 'กองทุนฉุกเฉิน', current: 2150, target: 5000, icon: '🐷', color: '#10b981', bg: '#d1fae5' }
+    ];
+    
+    let rules = [
+      { id: 1, text: '☕ เมื่อซื้อกาแฟ → ออม 20 บาท' },
+      { id: 2, text: '💰 หลังได้ค่าขนม → ออม 15%' },
+      { id: 3, text: '📅 ทุกวันจันทร์ → ออม 50 บาท' }
+    ];
+    
+    let selectedIcon = '🐷';
+    let selectedColor = '#ec4899';
+    let selectedBg = '#fce7f3';
+    let nextPiggyId = 4;
+    let nextRuleId = 4;
+    let currentDepositId = null;
+    let todaySaved = 87;
+    
+    // ========== Render ==========
+    function getTotal() {
+      return piggies.reduce((sum, p) => sum + p.current, 0);
+    }
+    
+    function updateTotal() {
+      document.getElementById('totalAmount').textContent = '฿' + getTotal().toLocaleString();
+      document.getElementById('todaySave').textContent = '+฿' + todaySaved;
+    }
+    
+    function renderHomeGoals() {
+      const container = document.getElementById('homeGoals');
+      // Show only first 2
+      const show = piggies.slice(0, 2);
+      let html = '';
+      show.forEach(p => {
+        const percent = Math.min(100, Math.round((p.current / p.target) * 100));
+        html += `
+          <div class="goal-card" onclick="openDepositModal(${p.id})">
+            <div class="goal-icon" style="background:${p.bg};">${p.icon}</div>
+            <div class="goal-info">
+              <div class="goal-name">${p.name}</div>
+              <div class="goal-progress-text">฿${p.current.toLocaleString()} / ฿${p.target.toLocaleString()} (${percent}%)</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:${percent}%; background:${p.color};"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+    
+    function renderPiggies() {
+      const grid = document.getElementById('piggyGrid');
+      let html = '';
+      
+      piggies.forEach(p => {
+        const percent = Math.min(100, Math.round((p.current / p.target) * 100));
+        html += `
+          <div class="piggy-card" onclick="openDepositModal(${p.id})">
+            <div class="piggy-icon" style="background:${p.bg};">${p.icon}</div>
+            <div class="piggy-name">${p.name}</div>
+            <div class="piggy-amount">฿${p.current.toLocaleString()} / ฿${p.target.toLocaleString()}</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${percent}%; background:${p.color};"></div>
+            </div>
+            <div style="font-size:12px; color:${p.color}; margin-top:8px; font-weight:600;">${percent}%</div>
+          </div>
+        `;
+      });
+      
+      html += `
+        <div class="piggy-card add-piggy" onclick="openPiggyModal()">
+          <span>+</span>
+          <div>สร้างกระปุกใหม่</div>
+        </div>
+      `;
+      
+      grid.innerHTML = html;
+      renderHomeGoals();
+      updateTotal();
+    }
+    
+    function renderRules() {
+      const list = document.getElementById('rulesList');
+      let html = '';
+      rules.forEach(r => {
+        html += `
+          <div class="rule-chip">
+            <span>${r.text}</span>
+            <span class="delete" onclick="deleteRule(${r.id})">×</span>
+          </div>
+        `;
+      });
+      list.innerHTML = html;
+    }
+    
+    // ========== Deposit ==========
+    function openDepositModal(id) {
+      const p = piggies.find(x => x.id === id);
+      if (!p) return;
+      
+      currentDepositId = id;
+      const percent = Math.min(100, Math.round((p.current / p.target) * 100));
+      
+      document.getElementById('depositIcon').style.background = p.bg;
+      document.getElementById('depositIcon').textContent = p.icon;
+      document.getElementById('depositName').textContent = p.name;
+      document.getElementById('depositProgress').textContent = 
+        `฿${p.current.toLocaleString()} / ฿${p.target.toLocaleString()} (${percent}%)`;
+      document.getElementById('depositBar').style.width = percent + '%';
+      document.getElementById('depositBar').style.background = p.color;
+      document.getElementById('depositAmount').value = '';
+      
+      document.getElementById('depositModal').classList.add('show');
+    }
+    
+    function setQuickAmount(amount) {
+      document.getElementById('depositAmount').value = amount;
+      document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+    
+    function depositToPiggy() {
+      const amount = parseInt(document.getElementById('depositAmount').value);
+      
+      if (!amount || amount < 1) {
+        showToast('กรุณาใส่จำนวนเงิน');
+        return;
+      }
+      
+      const p = piggies.find(x => x.id === currentDepositId);
+      if (!p) return;
+      
+      p.current += amount;
+      todaySaved += amount;
+      
+      // Cap at target (optional - allow over)
+      // if (p.current > p.target) p.current = p.target;
+      
+      renderPiggies();
+      closeModal('depositModal');
+      
+      const percent = Math.min(100, Math.round((p.current / p.target) * 100));
+      if (percent >= 100) {
+        showToast('🎉 ยินดีด้วย! ถึงเป้าหมายแล้ว');
+      } else {
+        showToast(`ออม ฿${amount.toLocaleString()} เข้า "${p.name}" สำเร็จ!`);
+      }
+    }
+    
+    // ========== Create Piggy ==========
+    function openPiggyModal() {
+      document.getElementById('piggyName').value = '';
+      document.getElementById('piggyTarget').value = '';
+      selectedIcon = '🐷';
+      selectedColor = '#ec4899';
+      selectedBg = '#fce7f3';
+      
+      document.querySelectorAll('#iconPicker .icon-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.icon === '🐷');
+      });
+      document.querySelectorAll('.color-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.color === '#ec4899');
+      });
+      
+      document.getElementById('piggyModal').classList.add('show');
+    }
+    
+    function createPiggy() {
+      const name = document.getElementById('piggyName').value.trim();
+      const target = parseInt(document.getElementById('piggyTarget').value);
+      
+      if (!name) { showToast('กรุณาใส่ชื่อกระปุก'); return; }
+      if (!target || target < 1) { showToast('กรุณาใส่เป้าหมายที่ถูกต้อง'); return; }
+      
+      piggies.push({
+        id: nextPiggyId++,
+        name: name,
+        current: 0,
+        target: target,
+        icon: selectedIcon,
+        color: selectedColor,
+        bg: selectedBg
+      });
+      
+      renderPiggies();
+      closeModal('piggyModal');
+      showToast('สร้างกระปุก "' + name + '" สำเร็จ!');
+    }
+    
+    // ========== Rules ==========
+    function openAddRuleModal() {
+      document.getElementById('ruleTrigger').value = 'ซื้อกาแฟ';
+      document.getElementById('ruleType').value = 'fixed';
+      document.getElementById('ruleAmount').value = '';
+      document.getElementById('ruleAmountLabel').textContent = 'จำนวนที่ออม (บาท)';
+      document.getElementById('ruleModal').classList.add('show');
+    }
+    
+    function createRule() {
+      const trigger = document.getElementById('ruleTrigger').value;
+      const type = document.getElementById('ruleType').value;
+      const amount = parseInt(document.getElementById('ruleAmount').value);
+      
+      if (!amount || amount < 1) { showToast('กรุณาใส่จำนวนที่ถูกต้อง'); return; }
+      
+      const icons = {
+        'ซื้อกาแฟ': '☕', 'ซื้ออาหาร': '🍜', 'ได้ค่าขนม': '💰',
+        'ได้เงินเดือน': '💵', 'ทุกวันจันทร์': '📅', 'ทุกวันศุกร์': '📅', 'สิ้นเดือน': '📆'
+      };
+      const icon = icons[trigger] || '⚡';
+      
+      let text = type === 'fixed' 
+        ? `${icon} เมื่อ${trigger} → ออม ${amount} บาท`
+        : `${icon} หลัง${trigger} → ออม ${amount}%`;
+      
+      rules.push({ id: nextRuleId++, text: text });
+      renderRules();
+      closeModal('ruleModal');
+      showToast('เพิ่มกฎสำเร็จ!');
+    }
+    
+    function deleteRule(id) {
+      rules = rules.filter(r => r.id !== id);
+      renderRules();
+      showToast('ลบกฎแล้ว');
+    }
+    
+    // ========== Helpers ==========
+    function selectIcon(el) {
+      document.querySelectorAll('#iconPicker .icon-option').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedIcon = el.dataset.icon;
+    }
+    
+    function selectColor(el) {
+      document.querySelectorAll('.color-option').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedColor = el.dataset.color;
+      selectedBg = el.dataset.bg;
+    }
+    
+    function selectRoundup(el) {
+      document.querySelectorAll('.roundup-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+    }
+    
+    function toggleRuleAmount() {
+      const type = document.getElementById('ruleType').value;
+      document.getElementById('ruleAmountLabel').textContent = 
+        type === 'fixed' ? 'จำนวนที่ออม (บาท)' : 'เปอร์เซ็นต์ที่ออม (%)';
+    }
+    
+    function showScreen(id, navEl) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      if (navEl) navEl.classList.add('active');
+      else document.querySelector(`.nav-item[data-screen="${id}"]`)?.classList.add('active');
+    }
+    
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+    
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+    
+    // Init
+    renderPiggies();
+    renderRules();
+  </script>
+</body>
+</html>
